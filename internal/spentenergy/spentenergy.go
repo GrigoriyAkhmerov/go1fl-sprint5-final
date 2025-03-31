@@ -1,73 +1,86 @@
+// Package spentenergy contain functions for calculating calories burned while walking,
+// running, functions for calculating average speed and distance.
 package spentenergy
 
-import ...
-
-// Основные константы, необходимые для расчетов.
-const (
-	lenStep   = 0.65  // средняя длина шага.
-	mInKm     = 1000  // количество метров в километре.
-	minInH    = 60    // количество минут в часе.
-	kmhInMsec = 0.278 // коэффициент для преобразования км/ч в м/с.
-	cmInM     = 100   // количество сантиметров в метре.
-	speed     = 1.39  // средняя скорость в м/с
+import (
+	"errors"
+	"time"
 )
 
-// Константы для расчета калорий, расходуемых при ходьбе.
+// Main constants for calculating.
 const (
-	walkingCaloriesWeightMultiplier = 0.035 // множитель массы тела.
-	walkingSpeedHeightMultiplier    = 0.029 // множитель роста.
+	lenStep   = 0.65  // "average step lenght"
+	mInKm     = 1000  // "meters in km"
+	minInH    = 60    // "minutes in 1 hour"
+	kmhInMsec = 0.278 // "coefficient for converting km/h to meters/sec"
+	cmInM     = 100   // "cm in meter"
+	speed     = 1.39  // "average speed in meters/sec units"
 )
 
-// WalkingSpentCalories возвращает количество потраченных калорий при ходьбе.
-//
-// Параметры:
-//
-// steps int - количество шагов.
-// weight float64 — вес пользователя.
-// height float64 — рост пользователя.
-// duration time.Duration — длительность тренировки.
-//
-// Создайте функцию ниже.
-...
+// Distance function takes the number of steps and returns the distance (in km units) that the user covered during workout.
+func Distance(steps int) float64 {
+	return (float64(steps)) * (float64(lenStep)) / float64(mInKm) // steps int - steps number.
+}
 
+// MeanSpeed function takes the number of steps, the duration of activity and returns the average speed during workout.
+func MeanSpeed(steps int, duration time.Duration) float64 {
+	if duration <= 0 { // Point 1.
+		return 0
+	}
 
-// Константы для расчета калорий, расходуемых при беге.
+	DistConv := Distance(steps) // Point 2. calculate distance using Distance() function.
+
+	DurationConv := float64(time.Duration(duration * time.Hour)) // Convert time.Duration to float64.
+
+	Speed := DistConv / DurationConv // Point 3. calculate and return the average speed.
+
+	return Speed
+}
+
+// Constants for calculating calories burned while walking.
 const (
-	runningCaloriesMeanSpeedMultiplier = 18.0 // множитель средней скорости.
-	runningCaloriesMeanSpeedShift      = 20.0 // среднее количество сжигаемых калорий при беге.
+	walkingCaloriesWeightMultiplier = 0.035 // "body mass multiplier"
+	walkingSpeedHeightMultiplier    = 0.029 // "height multiplier"
 )
 
-// RunningSpentCalories возвращает количество потраченных колорий при беге.
-//
-// Параметры:
-//
-// steps int - количество шагов.
-// weight float64 — вес пользователя.
-// duration time.Duration — длительность тренировки.
-//
-// Создайте функцию ниже.
-...
+var ErrNotPositiveNumber = errors.New("must be greater then zero") // "for points 1 and 2 in WalkingSpentCalories function"
 
+// WalkingSpentCalories takes the number of steps, weight and height of user,
+// duration of workout and returns calories burned while walking.
+func WalkingSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
+	if (weight <= 0) && (height <= 0) { // Point 1.
+		return 0, ErrNotPositiveNumber
+	}
 
-// МeanSpeed возвращает значение средней скорости движения во время тренировки.
-//
-// Параметры:
-//
-// steps int — количество совершенных действий(число шагов при ходьбе и беге).
-// duration time.Duration — длительность тренировки.
-// 
-// Создайте функцию ниже.
-...
+	if duration <= 0 { // Point 2.
+		return 0, ErrNotPositiveNumber
+	}
 
+	meanSpeedWalk := MeanSpeed(steps, duration) // Point 3. Calculate average speed  using MeanSpeed()
 
-// Distance возвращает дистанцию(в километрах), которую преодолел пользователь за время тренировки.
-//
-// Для расчета дистанции нужно шаги умножить на длину шага lenStep и разделить на mInKm
-// Параметры:
-//
-// steps int — количество совершенных действий (число шагов при ходьбе и беге).
-// 
-// Создайте функцию ниже
-...
+	WalkingBurnedCalories := ((walkingCaloriesWeightMultiplier * weight) + (meanSpeedWalk*meanSpeedWalk/height)*walkingSpeedHeightMultiplier) * float64(time.Duration(duration*time.Hour)) * minInH // Point 4.
 
+	return WalkingBurnedCalories, nil
+}
 
+// Constants for calculating calories burned while running.
+const (
+	runningCaloriesMeanSpeedMultiplier = 18.0 // "average speed multiplier"
+	runningCaloriesMeanSpeedShift      = 20.0 // "average number of calories burned while running"
+)
+
+// RunningSpentCalories takes the number of steps, weight of user,
+// duration of workout and returns calories burned while running.
+func RunningSpentCalories(steps int, weight float64, duration time.Duration) (float64, error) {
+	if weight <= 0 {
+		return 0, ErrNotPositiveNumber // Point 1.
+	}
+	if duration <= 0 {
+		return 0, ErrNotPositiveNumber // Point 2.
+	}
+	meanSpeedRun := MeanSpeed(steps, duration) // Point 3. Calculate average speed  using MeanSpeed()
+
+	RunningBurnedCalories := ((runningCaloriesMeanSpeedMultiplier * meanSpeedRun) - runningCaloriesMeanSpeedShift) * weight // Point 4.
+
+	return RunningBurnedCalories, nil
+}
