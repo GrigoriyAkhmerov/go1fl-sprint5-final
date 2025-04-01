@@ -49,24 +49,32 @@ var UnknownTrainingType = errors.New("unknown training type") // "for points 1 a
 // ActionInfo() method set string with workout data.
 func (t Training) ActionInfo() (string, error) {
 
-	FinalDist := spentenergy.Distance(t.Steps) //  Point 1. Get distance using Distance() function from spentenergy package.
+	FinalDist := spentenergy.Distance(t.Steps)					//  Point 1. Get distance using Distance() function from spentenergy package.
 
-	if t.Duration <= 0 { //  Point 2. must be greater then zero.
+	if t.Duration <= 0 {										//  Point 2. must be greater then zero.
 		return "", spentenergy.ErrNotPositiveNumber
 	}
 
-	FinalSpeed := spentenergy.MeanSpeed(t.Steps, t.Duration) // Point 3. Get average speed using MeanSpeed() function from spentenergy package.
+	FinalSpeed := spentenergy.MeanSpeed(t.Steps, t.Duration)	// Point 3. Get average speed using MeanSpeed() function from spentenergy package.
 
-	switch t.TrainingType { // Point 4. calculate calories burned for every type of workout.
+	switch t.TrainingType { 									// Point 4. calculate calories burned for every type of workout.
 
 	case "Ходьба":
 		FinalCaloriesWalk := spentenergy.WalkingSpentCalories(t.Steps, personaldata.p.Weight, personaldata.p.Height, t.Duration)
 
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\n	Дистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", t.TrainingType, t.Duration, FinalDist, FinalSpeed, FinalCaloriesWalk), nil // Point 5.
-
+		return fmt.Sprintf("Тип тренировки: %s\n
+							Длительность: %.2f ч.\n
+							Дистанция: %.2f км.\n
+							Скорость: %.2f км/ч\n
+							Сожгли калорий: %.2f\n", t.TrainingType, t.Duration, FinalDist, FinalSpeed, FinalCaloriesWalk), nil // Point 5.
+							
 	case "Бег":
 		FinalCaloriesRun := spentenergy.RunningSpentCalories(t.Steps, personaldata.p.Weight, t.Duration)
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", t.TrainingType, t.Duration, FinalDist, FinalSpeed, FinalCaloriesRun), nil // Point 5.
+		return fmt.Sprintf("Тип тренировки: %s\n
+							Длительность: %.2f ч.\n
+							Дистанция: %.2f км.\n
+							Скорость: %.2f км/ч\n
+							Сожгли калорий: %.2f\n", t.TrainingType, t.Duration, FinalDist, FinalSpeed, FinalCaloriesRun), nil // Point 5.
 
 	default:
 		return fmt.Sprintln("неизвестный тип тренировки"), UnknownTrainingType // Point 6.

@@ -4,6 +4,7 @@ package actioninfo
 import (
 	"github.com/GrigoriyAkhmerov/go1fl-sprint5-final/internal/trainings"
 	"github.com/GrigoriyAkhmerov/go1fl-sprint5-final/internal/daysteps"
+	"github.com/GrigoriyAkhmerov/go1fl-sprint5-final/internal/personaldata"
 )
 
 // DataParser interface.
