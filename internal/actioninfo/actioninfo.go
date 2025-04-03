@@ -2,38 +2,28 @@
 package actioninfo
 
 import (
-	"github.com/GrigoriyAkhmerov/go1fl-sprint5-final/internal/trainings"
-	"github.com/GrigoriyAkhmerov/go1fl-sprint5-final/internal/daysteps"
-	"github.com/GrigoriyAkhmerov/go1fl-sprint5-final/internal/personaldata"
+	"fmt"
 )
 
 // DataParser interface.
 type DataParser interface {
-    trainings.Parse()
-	trainings.ActionInfo()
-    daysteps.Parse()
-    daysteps.ActionInfo()
-} 
+	Parse(s string) error
+	ActionInfo() (string, error)
+}
 
 // Info function.
 func Info(dataset []string, dp DataParser) {
-	for _, v := range dataset {
-		DaylyAction := daysteps.Parse(v)
+	for _, v := range dataset { // Point 1. Loop through all values ​​of the dataset slice.
+		err := dp.Parse(v) // Point 2. Parsing all values with Parse () method.
+		if err != nil {
+			fmt.Println(err) // Point 3. Displaying error.
+			break
+		}
 	}
-	if err != nil {
-		return err
-		continue
-	}
-	fmt.Println(daysteps.ActionInfo())
 
-	for _, v := range dataset {
-		DaylyAction := trainings.Parse(v)
-	}
+	InfoString, err := dp.ActionInfo()
 	if err != nil {
-		return err
-		continue
+		fmt.Println(err)
 	}
-	fmt.Println(trainings.ActionInfo())
-
-	
-} 
+	fmt.Println(InfoString) // Point 4. Displaying information about activity.
+}
