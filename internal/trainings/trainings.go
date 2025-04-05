@@ -54,10 +54,10 @@ func (t *Training) Parse(datastring string) (err error) {
 }
 
 // InfoMessage function for AtionInfo() method.
-//func InfoMessage(training string, duration time.Duration, distance, speed float64, calories float64) string {
-//	fmt.Println(duration)
-//	return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", training, float64(duration), distance, speed, calories) // Point 5.
-//}
+func InfoMessage(training string, duration, distance, speed float64, calories float64) string {
+	//	fmt.Println(duration)
+	return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", training, duration, distance, speed, calories) // Point 5.
+}
 
 // ActionInfo() method set string with workout data.
 func (t Training) ActionInfo() (string, error) {
@@ -78,13 +78,10 @@ func (t Training) ActionInfo() (string, error) {
 
 	case "Ходьба":
 		finalCaloriesWalk, nil := spentenergy.WalkingSpentCalories(t.Steps, t.Weight, t.Height, t.Duration)
-		//fmt.Println(t.Duration)
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", t.TrainingType, t.Duration.Hours(), finalDist, finalSpeed, finalCaloriesWalk), nil // Point 5.
-
+		return InfoMessage(t.TrainingType, t.Duration.Hours(), finalDist, finalSpeed, finalCaloriesWalk), nil // Point 5.
 	case "Бег":
 		finalCaloriesRun, nil := spentenergy.RunningSpentCalories(t.Steps, t.Weight, t.Duration)
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", t.TrainingType, t.Duration.Hours(), finalDist, finalSpeed, finalCaloriesRun), nil
-
+		return InfoMessage(t.TrainingType, t.Duration.Hours(), finalDist, finalSpeed, finalCaloriesRun), nil
 	default:
 		return fmt.Sprintln("неизвестный тип тренировки"), ErrUnknownTrainingType // Point 6.
 	}
