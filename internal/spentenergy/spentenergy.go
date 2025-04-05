@@ -4,6 +4,7 @@ package spentenergy
 
 import (
 	"errors"
+	//"fmt"
 	"time"
 )
 
@@ -19,7 +20,7 @@ const (
 
 // Distance function takes the number of steps and returns the distance (in km units) that the user covered during workout.
 func Distance(steps int) float64 {
-	return (float64(steps)) * (float64(lenStep)) / float64(mInKm) // steps int - steps number.
+	return (float64(steps) * lenStep) / mInKm // steps int - steps number.
 }
 
 // MeanSpeed function takes the number of steps, the duration of activity and returns the average speed during workout.
@@ -28,13 +29,11 @@ func MeanSpeed(steps int, duration time.Duration) float64 {
 		return 0
 	}
 
-	DistConv := Distance(steps) // Point 2. calculate distance using Distance() function.
+	distance := Distance(steps) // Point 2. calculate distance using Distance() function.
 
-	DurationConv := float64(time.Duration(duration * time.Hour)) // Convert time.Duration to float64.
+	speed := distance / duration.Hours() // Point 3. calculate and return the average speed.
 
-	Speed := DistConv / DurationConv // Point 3. calculate and return the average speed.
-
-	return Speed
+	return speed
 }
 
 // Constants for calculating calories burned while walking.
@@ -48,7 +47,7 @@ var ErrNotPositiveNumber = errors.New("must be greater then zero") // "for point
 // WalkingSpentCalories takes the number of steps, weight and height of user,
 // duration of workout and returns calories burned while walking.
 func WalkingSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-	if (weight <= 0) && (height <= 0) { // Point 1.
+	if (weight <= 0) || (height <= 0) { // Point 1.
 		return 0, ErrNotPositiveNumber
 	}
 
@@ -58,9 +57,9 @@ func WalkingSpentCalories(steps int, weight, height float64, duration time.Durat
 
 	meanSpeedWalk := MeanSpeed(steps, duration) // Point 3. Calculate average speed  using MeanSpeed()
 
-	WalkingBurnedCalories := ((walkingCaloriesWeightMultiplier * weight) + (meanSpeedWalk*meanSpeedWalk/height)*walkingSpeedHeightMultiplier) * float64(time.Duration(duration*time.Hour)) * minInH // Point 4.
+	walkingBurnedCalories := ((walkingCaloriesWeightMultiplier * weight) + (meanSpeedWalk*meanSpeedWalk/height)*walkingSpeedHeightMultiplier) * duration.Hours() * minInH // Point 4.
 
-	return WalkingBurnedCalories, nil
+	return walkingBurnedCalories, nil
 }
 
 // Constants for calculating calories burned while running.
@@ -80,7 +79,7 @@ func RunningSpentCalories(steps int, weight float64, duration time.Duration) (fl
 	}
 	meanSpeedRun := MeanSpeed(steps, duration) // Point 3. Calculate average speed  using MeanSpeed()
 
-	RunningBurnedCalories := ((runningCaloriesMeanSpeedMultiplier * meanSpeedRun) - runningCaloriesMeanSpeedShift) * weight // Point 4.
+	runningBurnedCalories := ((runningCaloriesMeanSpeedMultiplier * meanSpeedRun) - runningCaloriesMeanSpeedShift) * weight // Point 4.
 
-	return RunningBurnedCalories, nil
+	return runningBurnedCalories, nil
 }

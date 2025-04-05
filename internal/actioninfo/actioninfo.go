@@ -1,4 +1,4 @@
-// Package actioninfo displays main information about all type of workouts.
+// Package actioninfo.
 package actioninfo
 
 import (
@@ -17,13 +17,14 @@ func Info(dataset []string, dp DataParser) {
 		err := dp.Parse(v) // Point 2. Parsing all values with Parse () method.
 		if err != nil {
 			fmt.Println(err) // Point 3. Displaying error.
-			break
+			continue
 		}
-	}
 
-	InfoString, err := dp.ActionInfo()
-	if err != nil {
-		fmt.Println(err)
+		infoString, err := dp.ActionInfo()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Println(infoString) // Point 4. Displaying information about activity.
 	}
-	fmt.Println(InfoString) // Point 4. Displaying information about activity.
 }

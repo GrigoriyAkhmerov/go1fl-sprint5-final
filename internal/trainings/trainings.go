@@ -20,67 +20,70 @@ type Training struct {
 	personaldata.Personal
 }
 
+var (
+	ErrUnknownTrainingType = errors.New("unknown training type") // "for points 1 and 2 in WalkingSpentCalories function and Parse() method"
+	ErrConverting          = errors.New("converting error")
+)
+
 // Parse() method parse string in format "3456,Ходьба,3h00m" and set Training structure fields.
 func (t *Training) Parse(datastring string) (err error) {
-	StepsActivityDuration := strings.Split(datastring, ",") //  Point 1. get slice of data after splitting string.
-
-	if len(StepsActivityDuration) != 3 { //  Point 2. need only three variables: number of steps, activity and duration.
-		return err
+	stepsActivityDuration := strings.Split(datastring, ",") //  Point 1. get slice of data after splitting string.
+	if len(stepsActivityDuration) != 3 {                    //  Point 2. need only three variables: number of steps, activity and duration.
+		return errors.New("slice isn't equal 3")
 	}
-
-	t.Steps, err = strconv.Atoi(StepsActivityDuration[0]) //  Point 3. convert the first element of the slice to int type and set Steps field in Training structure.
+	t.Steps, err = strconv.Atoi(stepsActivityDuration[0]) //  Point 3. convert the first element of the slice to int type and set Steps field in Training structure.
 	if err != nil {
-		return err
+		return ErrConverting
 	}
-	if (StepsActivityDuration[1] != "Бег") && (StepsActivityDuration[1] != "Ходьба") { // Point 4. Must be "Бег" or "Ходьба" only.
-		return err
+	if t.Steps <= 0 {
+		return spentenergy.ErrNotPositiveNumber
 	}
-
-	t.TrainingType = StepsActivityDuration[1] //  Point 5. set TrainingType field in Training structure.
-
-	t.Duration, err = time.ParseDuration(StepsActivityDuration[2]) // Point 6. convert the third element of the slice to time.Duration type set Duration field in Training structure.
+	if (stepsActivityDuration[1] != "Бег") && (stepsActivityDuration[1] != "Ходьба") { // Point 4. Must be "Бег" or "Ходьба" only.
+		return ErrUnknownTrainingType
+	}
+	t.TrainingType = stepsActivityDuration[1]                      //  Point 5. set TrainingType field in Training structure.
+	t.Duration, err = time.ParseDuration(stepsActivityDuration[2]) // Point 6. convert the third element of the slice to time.Duration type set Duration field in Training structure.
+	// fmt.Println(t.Duration)
 	if err != nil {
-		return err
+		return ErrConverting
 	}
-	return
+	if t.Duration <= 0 {
+		return spentenergy.ErrNotPositiveNumber
+	}
+	return nil
 }
 
-var ErrUnknownTrainingType = errors.New("unknown training type") // "for points 1 and 2 in WalkingSpentCalories function"
+// InfoMessage function for AtionInfo() method.
+//func InfoMessage(training string, duration time.Duration, distance, speed float64, calories float64) string {
+//	fmt.Println(duration)
+//	return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", training, float64(duration), distance, speed, calories) // Point 5.
+//}
 
 // ActionInfo() method set string with workout data.
 func (t Training) ActionInfo() (string, error) {
 
-	FinalDist := spentenergy.Distance(t.Steps) //  Point 1. Get distance using Distance() function from spentenergy package.
+	finalDist := spentenergy.Distance(t.Steps) //  Point 1. Get distance using Distance() function from spentenergy package.
+
+	if finalDist <= 0 {
+		return "", spentenergy.ErrNotPositiveNumber
+	}
 
 	if t.Duration <= 0 { //  Point 2. must be greater then zero.
 		return "", spentenergy.ErrNotPositiveNumber
 	}
 
-	FinalSpeed := spentenergy.MeanSpeed(t.Steps, t.Duration) // Point 3. Get average speed using MeanSpeed() function from spentenergy package.
+	finalSpeed := spentenergy.MeanSpeed(t.Steps, t.Duration) // Point 3. Get average speed using MeanSpeed() function from spentenergy package.
 
 	switch t.TrainingType { // Point 4. calculate calories burned for every type of workout.
 
 	case "Ходьба":
-		FinalCaloriesWalk, nil := spentenergy.WalkingSpentCalories(t.Steps, t.Weight, t.Height, t.Duration)
-
-		DurationConverted1 := float64(time.Duration(t.Duration * time.Hour))
-
-		return fmt.Sprintf(`Тип тренировки: %s
-							Длительность: %.2f ч.
-							Дистанция: %.2f км.
-							Скорость: %.2f км/ч
-							Сожгли калорий: %.2f`, t.TrainingType, DurationConverted1, FinalDist, FinalSpeed, FinalCaloriesWalk), nil // Point 5.
+		finalCaloriesWalk, nil := spentenergy.WalkingSpentCalories(t.Steps, t.Weight, t.Height, t.Duration)
+		//fmt.Println(t.Duration)
+		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", t.TrainingType, t.Duration.Hours(), finalDist, finalSpeed, finalCaloriesWalk), nil // Point 5.
 
 	case "Бег":
-		FinalCaloriesRun, nil := spentenergy.RunningSpentCalories(t.Steps, t.Weight, t.Duration)
-
-		DurationConverted2 := float64(time.Duration(t.Duration * time.Hour))
-
-		return fmt.Sprintf(`Тип тренировки: %s
-							Длительность: %.2f ч.
-							Дистанция: %.2f км.
-							Скорость: %.2f км/ч
-							Сожгли калорий: %.2f`, t.TrainingType, DurationConverted2, FinalDist, FinalSpeed, FinalCaloriesRun), nil // Point 5.
+		finalCaloriesRun, nil := spentenergy.RunningSpentCalories(t.Steps, t.Weight, t.Duration)
+		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f", t.TrainingType, t.Duration.Hours(), finalDist, finalSpeed, finalCaloriesRun), nil
 
 	default:
 		return fmt.Sprintln("неизвестный тип тренировки"), ErrUnknownTrainingType // Point 6.
