@@ -1,3 +1,3 @@
-module github.com/Yandex-Practicum/go1fl-sprint5-final
+module github.com/GrigoriyAkhmerov/go1fl-sprint5-final
 
-go 1.23.6
+go 1.24.0
